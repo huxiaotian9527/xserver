@@ -1,11 +1,10 @@
 package com.hu.tran.xserver.pack;
 
 import com.hu.tran.xserver.handle.Handler;
+import org.apache.log4j.Logger;
 import org.dom4j.Document;
 import org.dom4j.Element;
 import org.dom4j.io.SAXReader;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -20,11 +19,11 @@ import java.util.Map;
  * @since 1.0.0
  */
 public class PackMapper {
-    private static final Logger log = LoggerFactory.getLogger(PackMapper.class);
+    private static final Logger log = Logger.getLogger(PackMapper.class);
 
     private static PackMapper packMapper;
     private static Map<String,Pack> packMap = new HashMap();
-    private static final String handlerPath = "com.hu.tran.xserver.handle";
+    private static final String handlerPath = "com.hu.tran.xserver.handle.";
 
     //私有无参构造方法
     private PackMapper(){}
@@ -97,7 +96,7 @@ public class PackMapper {
             log.error("未配置Handler字段！");
             return null;
         }
-        String  clazz = handlerPath+className.getText();
+        String clazz = handlerPath+className.getText();
         Handler handler = null;
         try{
             handler = (Handler)Class.forName(clazz).newInstance();

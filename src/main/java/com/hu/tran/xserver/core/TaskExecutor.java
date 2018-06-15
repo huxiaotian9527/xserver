@@ -3,12 +3,10 @@ package com.hu.tran.xserver.core;
 import com.hu.tran.xserver.pack.Field;
 import com.hu.tran.xserver.pack.Pack;
 import com.hu.tran.xserver.pack.PackMapper;
-import com.sun.org.apache.xalan.internal.xsltc.compiler.util.ErrorMsg;
+import org.apache.log4j.Logger;
 import org.dom4j.Document;
 import org.dom4j.DocumentHelper;
 import org.dom4j.Element;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
@@ -23,7 +21,7 @@ import java.util.Map;
  * @since 1.0.0
  */
 public class TaskExecutor {
-    private static final Logger log = LoggerFactory.getLogger(TaskExecutor.class);
+    private static final Logger log = Logger.getLogger(TaskExecutor.class);
 
     private static final String charset = "utf-8";				//请求消息编码
     private static final int lengthInfo = 8;				    //请求报文中长度字节的位数
@@ -55,13 +53,14 @@ public class TaskExecutor {
             log.error("未找到请求服务编码"+serviceCode+"对应的服务！");
             response.put("code","");
             response.put("message","未找到请求服务编码"+serviceCode+"对应的服务！");
+            addResponse(resDoc,pack,response,baos);
             return;
         }
         //将请求报文按xml标签转换后赋值给request对象
         try{
             unpackRequest(reqDoc.getRootElement(),pack,request);
         }catch(Exception e){
-            log.error("MQ消息处理----------解析请求报文"+serviceCode+"异常！",e);
+            log.error("解析请求报文"+serviceCode+"异常！",e);
             if(e.getMessage().startsWith("NULLABLE")){			//必送字段未上从报错
                 response.put("code","");
                 response.put("message",e.getMessage().split(",")[1]);
@@ -69,6 +68,7 @@ public class TaskExecutor {
                 response.put("code","");
                 response.put("message","解析请求报文异常！");
             }
+            addResponse(resDoc,pack,response,baos);
             return;
         }
         //调用xml中配置的serviceId对应的处理类handler方法
@@ -76,13 +76,10 @@ public class TaskExecutor {
             //处理结果为失败，直接返回错误信息错误码，不需要添加响应字段
             pack.getHandler().handler(request, response);
         }catch(Exception e){
-            log.error("MQ消息处理----------解析请求报文"+serviceCode+"异常！",e);
+            log.error("解析请求报文"+serviceCode+"异常！",e);
             return;
         }
-
-
-
-
+        addResponse(resDoc,pack,response,baos);
     }
 
     /**
@@ -124,8 +121,6 @@ public class TaskExecutor {
                 i = i+fieldList.size()-1;
             }
         }
-        //返回公共报文头的部分字段赋值
-        request.put("branch_id",root.element("Service_Header").element("branch_id").getTextTrim());		//机构号
     }
 
     /**
@@ -178,6 +173,103 @@ public class TaskExecutor {
                         }
                     }
                     mapList.add(map);
+                }
+            }
+        }
+    }
+
+    /**
+     * 根据response和pack配置生成响应报文
+     * @param doc 返回的document文档
+     * @param pack 请求serviceId对应的Pack对象
+     * @param response 具体服务方接口handler处理后的结果map
+     */
+    @SuppressWarnings("unchecked")
+    private void addResponse(Document doc,Pack pack,Map<String,Object> response,ByteArrayOutputStream baos) throws Exception{
+        Element root = doc.addElement("service");              //添加根节点
+        //遍历响应字段，
+        for(int i=0;i<pack.getResponseList().size();i++){
+            Element tempRoot = root;
+            Field field = pack.getResponseList().get(i);
+            String loop = field.getLoop();
+            if(loop.equals("")){							//非循环域字段
+                if(response.get(field.getName())!=null){
+                    putValueToXml(tempRoot,field.getTag(),response.get(field.getName()).toString());
+                }else{
+                    putValueToXml(tempRoot,field.getTag(),"");
+                }
+            }else{											//循环域字段一次性处理完
+                ArrayList<Field> fieldList = new ArrayList<Field>();
+                for(Field field1:pack.getResponseList()){
+                    if(field1.getLoop().equals(loop)){
+                        fieldList.add(field1);
+                    }
+                }
+                List<Map<String,String>> mapList = null;
+                try{
+                    mapList = (List<Map<String,String>>)response.get(loop);
+                }catch(Exception e){
+                    mapList = new ArrayList<Map<String,String>>();
+                    log.info("拼接处理结果异常,循环域结果为空！",e);
+                }
+                if(mapList.size()>0){
+                    putLoopToXml(tempRoot,mapList,fieldList);
+                }
+                i = i+fieldList.size()-1;
+            }
+        }
+        baos.write(doc.asXML().getBytes(pack.getEncoding()));
+    }
+
+    /**
+     * 将response的非循环域结果放入xml
+     * @param elem 根元素
+     * @param tag 标签集合
+     * @param value 最后一个标签的值
+     */
+    private void putValueToXml(Element elem,String tag,String value){
+        String[] strAarry = tag.split("/");
+        for(int i=1;i<strAarry.length;i++){
+            if(elem.element(strAarry[i])==null){
+                elem = elem.addElement(strAarry[i]);
+            }else{
+                elem = elem.element(strAarry[i]);
+            }
+            if(i==strAarry.length-1){
+                elem.setText(value);
+            }
+        }
+    }
+
+    /**
+     * 将response的循环域结果放入xml
+     * @param elem 根元素
+     * @param mapList 响应结果map集合
+     * @param fieldList 同一loop的标签集合
+     */
+    private void putLoopToXml(Element elem,List<Map<String,String>> mapList,List<Field> fieldList){
+        String[] strAarry = fieldList.get(0).getTag().split("/");
+        //这里tag标签的倒数第二层为循环标签，且标签长度大于3
+        for(int i=1;i<strAarry.length-2;i++){
+            if(elem.element(strAarry[i])==null){
+                elem = elem.addElement(strAarry[i]);
+            }else{
+                elem = elem.element(strAarry[i]);
+            }
+            if(i==strAarry.length-3){
+                Element e = elem;
+                for(Map<String,String> map:mapList){
+                    Element eArray = e.addElement(strAarry[i+1]);
+                    for(Field field:fieldList){
+                        String temp = map.get(field.getName());
+                        //tag最后一层为循环内标签，且只支持一层
+                        String[] sArray = field.getTag().split("/");
+                        if(temp!=null){
+                            eArray.addElement(sArray[sArray.length-1]).setText(temp);
+                        }else{
+                            eArray.addElement(sArray[sArray.length-1]);
+                        }
+                    }
                 }
             }
         }

@@ -1,7 +1,6 @@
 package com.hu.tran.xserver.core;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.log4j.Logger;
 
 import java.io.*;
 import java.net.Socket;
@@ -13,7 +12,7 @@ import java.net.Socket;
  * @since 1.0.0
  */
 public class Task implements Runnable{
-    private static final Logger log = LoggerFactory.getLogger(Task.class);
+    private static final Logger log = Logger.getLogger(Task.class);
 
     private static final Long timeout = 10000L;             //未收到消息得超时时间，单位毫秒
     private static final Long count = 60L;                  //已收到报文的时间计数器，单位毫秒
