@@ -9,5 +9,8 @@
         <module name="xserver" />
       </profile>
     </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="xserver" target="1.5" />
+    </bytecodeTargetLevel>
   </component>
 </project>
