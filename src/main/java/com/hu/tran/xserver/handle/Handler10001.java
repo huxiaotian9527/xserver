@@ -1,6 +1,7 @@
 package com.hu.tran.xserver.handle;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -19,9 +20,13 @@ public class Handler10001 implements Handler{
         response.put("TranDate","20180508");
         response.put("TranTime","20180508");
         response.put("GlobalSeqNo","3000501506240286ad09080063e7");
-        ArrayList<String> list = new ArrayList();
-        list.add("3000501506240286ad09080063e7_300050.html");
-        list.add("3000501506240286ad09080063e7_300050.xml");
+        ArrayList<Map<String,String>> list = new ArrayList();
+        Map<String,String> map1 = new HashMap<String, String>();
+        map1.put("OtptFile","3000501506240286ad09080063e7_300050.html");
+        Map<String,String> map2 = new HashMap<String, String>();
+        map2.put("OtptFile","3000501506240286ad09080063e7_300050.xml");
+        list.add(map1);
+        list.add(map2);
         response.put("list",list);
     }
 }
