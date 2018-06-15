@@ -91,6 +91,12 @@ public class Task implements Runnable{
         } catch(Exception e) {
             log.error("返回结果消息失败！",e);
             return;
+        }finally {
+            try {
+                socket.close();
+            }catch (Exception e){
+                log.error("关闭socket异常",e);
+            }
         }
 
     }
