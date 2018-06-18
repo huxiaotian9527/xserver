@@ -1,5 +1,6 @@
 package com.hu.tran.xserver.pack;
 
+import com.hu.tran.xserver.core.Application;
 import com.hu.tran.xserver.handle.Handler;
 import org.apache.log4j.Logger;
 import org.dom4j.Document;
@@ -7,10 +8,11 @@ import org.dom4j.Element;
 import org.dom4j.io.SAXReader;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.net.JarURLConnection;
+import java.net.URL;
+import java.util.*;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
 
 /**
  * 报文缓存对象
@@ -28,30 +30,66 @@ public class PackMapper {
     //私有无参构造方法
     private PackMapper(){}
 
-    private PackMapper(String configFilePath){
-        File[] fileList = new File(configFilePath).listFiles();
-        if(fileList!=null&&fileList.length>0){
+    private PackMapper(String configFilePath) throws Exception{
+        String pathTemp = configFilePath;
+        configFilePath = this.getClass().getResource(configFilePath).getPath();
+        //打成可执行jar文件后不能用file来读取document,需要转url
+        if(configFilePath.contains("jar!")){
+            String jarPath = Application.class.getProtectionDomain().getCodeSource().getLocation().getFile();
             boolean ret = true;
-            for (File file:fileList) {
-                Document doc = null;
-                try{
-                    SAXReader sax = new SAXReader();
-                    doc = sax.read(file);
-                }catch (Exception e){
-                    ret = false;
-                    log.error("读取服务方报文"+file.getName()+"异常！",e);
-                    break;
+            boolean ret1 = false;
+            Enumeration<JarEntry> entry = new JarFile(jarPath).entries();
+            while(entry.hasMoreElements()) {
+                JarEntry jar = entry.nextElement();
+                String jarName = jar.getName();
+                if(jarName.startsWith(pathTemp.replace("/","")+"/")&&jarName.length()>5){
+                    ret1 = true;
+                    Document doc = null;
+                    try{
+                        SAXReader sax = new SAXReader();
+                        doc = sax.read(new URL("jar:file:"+jarPath+"!/"+jarName));
+                    }catch (Exception e){
+                        ret = false;
+                        log.error("读取服务方报文"+jarName+"异常！",e);
+                        break;
+                    }
+                    Pack pack = getPack(doc.getRootElement());
+                    if(pack==null){
+                        ret = false;
+                        log.error("组装服务方报文:"+jarName+"异常！");
+                        break;
+                    }
+                    packMap.put(pack.getPackCode(), pack);
                 }
-                Pack pack = getPack(doc.getRootElement());
-                if(pack==null){
-                    ret = false;
-                    log.error("组装服务方报文:"+file.getName().split("\\.")[0]+"异常！");
-                    break;
-                }
-                packMap.put(pack.getPackCode(), pack);
             }
-            if(ret){
+            if(ret&&ret1){
                 packMapper = this;
+            }
+        }else{
+            File[] fileList = new File(configFilePath).listFiles();
+            if(fileList!=null&&fileList.length>0){
+                boolean ret = true;
+                for (File file:fileList) {
+                    Document doc = null;
+                    try{
+                        SAXReader sax = new SAXReader();
+                        doc = sax.read(file);
+                    }catch (Exception e){
+                        ret = false;
+                        log.error("读取服务方报文"+file.getName()+"异常！",e);
+                        break;
+                    }
+                    Pack pack = getPack(doc.getRootElement());
+                    if(pack==null){
+                        ret = false;
+                        log.error("组装服务方报文:"+file.getName().split("\\.")[0]+"异常！");
+                        break;
+                    }
+                    packMap.put(pack.getPackCode(), pack);
+                }
+                if(ret){
+                    packMapper = this;
+                }
             }
         }
     }
@@ -185,7 +223,14 @@ public class PackMapper {
      */
     public static PackMapper init(String configFilePath){
         if(packMapper==null){
-            new PackMapper(configFilePath);
+            try {
+                new PackMapper(configFilePath);
+            }catch (Exception e){
+                log.error("初始化报文缓存对象异常！",e);
+            }
+        }
+        if(packMapper!=null){
+            log.debug("初始化报文缓存对象成功！");
         }
         return packMapper;
     }

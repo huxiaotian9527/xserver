@@ -4,9 +4,13 @@ import com.hu.tran.xserver.pack.PackMapper;
 import org.apache.log4j.Logger;
 
 import java.io.File;
-import java.io.IOException;
+import java.net.JarURLConnection;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.URL;
+import java.util.Enumeration;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
 
 /**
  * @author hutiantian
@@ -17,19 +21,24 @@ public class Application {
     private static final Logger log = Logger.getLogger(Application.class);
 
     private static final int port = 8888;
+    private static final String path = "/pack";         //配置文件存放路径
 
-    public static void main(String[] args) throws IOException {
-        ServerSocket server = new ServerSocket(port);
-        String packPath = Application.class.getResource("/").getPath()+"pack";
-        if(PackMapper.init(packPath)==null){
-            log.error("初始化失败！");
-            System.exit(0);
+    public static void main(String[] args) {
+        try {
+            ServerSocket server = new ServerSocket(port);
+            if(PackMapper.init(path)==null){
+                log.error("初始化失败！");
+                System.exit(0);
+            }
+            while (true) {
+                Socket socket = server.accept();
+                Task task = new Task(socket);
+                TaskThreadPool pool = new TaskThreadPool();
+                pool.execute(task);
+            }
+        }catch (Exception e){
+            log.error(e);
         }
-        while (true) {
-            Socket socket = server.accept();
-            Task task = new Task(socket);
-            TaskThreadPool pool = new TaskThreadPool();
-            pool.execute(task);
-        }
+
     }
 }
