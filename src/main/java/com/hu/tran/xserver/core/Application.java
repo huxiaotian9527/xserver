@@ -3,14 +3,8 @@ package com.hu.tran.xserver.core;
 import com.hu.tran.xserver.pack.PackMapper;
 import org.apache.log4j.Logger;
 
-import java.io.File;
-import java.net.JarURLConnection;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.net.URL;
-import java.util.Enumeration;
-import java.util.jar.JarEntry;
-import java.util.jar.JarFile;
 
 /**
  * @author hutiantian
@@ -39,6 +33,5 @@ public class Application {
         }catch (Exception e){
             log.error(e);
         }
-
     }
 }

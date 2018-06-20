@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- MQ服务方测试 -->	
 <Pack>	
-	<PackCode>10001</PackCode>
-	<Desc>进件审批测试使用报文</Desc>
+	<PackCode>CPAY001</PackCode>
+	<Desc>快速放款，生成合同号</Desc>
 	<LogFlag>true</LogFlag>
 	<Encoding>utf-8</Encoding>
-	<Handler>Handler10001</Handler>
+	<Handler>HandlerCPAY001</Handler>
 	
 	<!-- 收到的请求报文格式 -->	
 	<Request>
@@ -24,6 +24,6 @@
 		<Field name="TranTime" desc="返回码" len="4" nullable="true" loop=""  tag="service/APP_HEAD/TranTime"/>
 		<Field name="GlobalSeqNo" desc="返回码" len="4" nullable="true" loop=""  tag="service/APP_HEAD/GlobalSeqNo"/>
 		<!--私有域-->
-		<Field name="OtptFile" desc="返回码" len="4" nullable="true" loop="list"  tag="service/BODY/FileArray/OtptFile"/>
+		<Field name="CtrNo" desc="返回码" len="4" nullable="true" loop=""  tag="service/BODY/CtrNo"/>
 	</Response>
 </Pack>
