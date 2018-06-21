@@ -8,8 +8,8 @@ import org.dom4j.Element;
 import org.dom4j.io.SAXReader;
 
 import java.io.File;
-import java.net.JarURLConnection;
 import java.net.URL;
+import java.net.URLDecoder;
 import java.util.*;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
@@ -32,7 +32,8 @@ public class PackMapper {
 
     private PackMapper(String configFilePath) throws Exception{
         String pathTemp = configFilePath;
-        configFilePath = this.getClass().getResource(configFilePath).getPath();
+        //中文转乱
+        configFilePath = URLDecoder.decode(this.getClass().getResource(configFilePath).getPath(),"utf-8");
         //打成可执行jar文件后不能用file来读取document,需要转url
         if(configFilePath.contains("jar!")){
             String jarPath = Application.class.getProtectionDomain().getCodeSource().getLocation().getFile();
