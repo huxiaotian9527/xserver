@@ -7,8 +7,11 @@ import org.apache.log4j.Logger;
 import org.dom4j.Document;
 import org.dom4j.DocumentHelper;
 import org.dom4j.Element;
+import org.dom4j.io.OutputFormat;
+import org.dom4j.io.XMLWriter;
 
 import java.io.ByteArrayOutputStream;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -23,7 +26,7 @@ import java.util.Map;
 public class TaskExecutor {
     private static final Logger log = Logger.getLogger(TaskExecutor.class);
 
-    private static final String charset = "utf-8";				//请求消息编码
+    private static final String charset = "GBK";				//请求消息编码
     private static final int lengthInfo = 8;				    //请求报文中长度字节的位数
     private static TaskExecutor taskHandler = new TaskExecutor();
 
@@ -44,15 +47,24 @@ public class TaskExecutor {
         System.arraycopy(origin, lengthInfo, copy, 0, origin.length - lengthInfo);
         Document reqDoc =  DocumentHelper.parseText(new String(copy,charset));
         Document resDoc =  DocumentHelper.createDocument();
-        String serviceCode = reqDoc.getRootElement().element("SYS_HEAD").element("ServiceCode").getText();
+        String serviceCode = null;
+        try {
+            serviceCode = reqDoc.getRootElement().element("SYS_HEAD").element("ServiceCode").getText();
+        }catch (Exception e){
+            log.info("请求报文不符合规定！",e);
+        }
+        if(serviceCode==null){
+            //可以返回一个表示错误的报文
+            return;
+        }
         Map<String,Object> request = new HashMap<String,Object>();		//传给具体handler类的request
         Map<String,Object> response = new HashMap<String,Object>();		//传给具体handler类的response
         //获取请求ServiceCode对应的pack对象
         Pack pack = PackMapper.getInstance().getPack(serviceCode);
         if(pack==null){             //没有serviceId的情况下，直接返回错误报文，不记录日志
             log.error("未找到请求服务编码"+serviceCode+"对应的服务！");
-            response.put("code","");
-            response.put("message","未找到请求服务编码"+serviceCode+"对应的服务！");
+            response.put("ReturnCode","");
+            response.put("ReturnMsg","未找到请求服务编码"+serviceCode+"对应的服务！");
             addResponse(resDoc,pack,response,baos);
             return;
         }
@@ -62,11 +74,11 @@ public class TaskExecutor {
         }catch(Exception e){
             log.error("解析请求报文"+serviceCode+"异常！",e);
             if(e.getMessage().startsWith("NULLABLE")){			//必送字段未上从报错
-                response.put("code","");
-                response.put("message",e.getMessage().split(",")[1]);
+                response.put("ReturnCode","");
+                response.put("ReturnMsg",e.getMessage().split(",")[1]);
             }else{
-                response.put("code","");
-                response.put("message","解析请求报文异常！");
+                response.put("ReturnCode","");
+                response.put("ReturnMsg","解析请求报文异常！");
             }
             addResponse(resDoc,pack,response,baos);
             return;
@@ -212,13 +224,24 @@ public class TaskExecutor {
                     mapList = new ArrayList<Map<String,String>>();
                     log.info("拼接处理结果异常,循环域结果为空！",e);
                 }
-                if(mapList.size()>0){
+                if(mapList!=null&&mapList.size()>0){
                     putLoopToXml(tempRoot,mapList,fieldList);
                 }
                 i = i+fieldList.size()-1;
             }
         }
-        baos.write(doc.asXML().getBytes(pack.getEncoding()));
+        //格式化一下，便于阅读
+        OutputFormat format = new OutputFormat();
+        format.setEncoding(pack.getEncoding());						//设置编码
+        format.setNewlines(true);									//是否换行
+        format.setIndent(true);										//缩进
+        format.setIndent("    ");									//用4个空格缩进
+        StringWriter sw = new StringWriter();
+        XMLWriter xmlWriter = new XMLWriter(sw,format);
+        xmlWriter.write(doc);
+        baos.write(sw.toString().getBytes(pack.getEncoding()));
+        sw.close();
+        xmlWriter.close();
     }
 
     /**

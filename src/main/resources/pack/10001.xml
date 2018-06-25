@@ -4,7 +4,7 @@
 	<PackCode>10001</PackCode>
 	<Desc>进件审批测试使用报文</Desc>
 	<LogFlag>true</LogFlag>
-	<Encoding>utf-8</Encoding>
+	<Encoding>GBK</Encoding>
 	<Handler>Handler10001</Handler>
 	
 	<!-- 收到的请求报文格式 -->	
