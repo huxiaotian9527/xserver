@@ -1,5 +1,6 @@
 package com.hu.tran.xserver.core;
 
+import com.hu.tran.xserver.common.Constant;
 import com.hu.tran.xserver.pack.Field;
 import com.hu.tran.xserver.pack.Pack;
 import com.hu.tran.xserver.pack.PackMapper;
@@ -26,8 +27,10 @@ import java.util.Map;
 public class TaskExecutor {
     private static final Logger log = Logger.getLogger(TaskExecutor.class);
 
-    private static final String charset = "GBK";				//请求消息编码
+    private static final String charset = "UTF-8";				//请求消息编码
+    private static final String charset1 = "GBK";				//请求消息编码
     private static final int lengthInfo = 8;				    //请求报文中长度字节的位数
+    private static final int lengthInfo1 = 111;				    //电子账户
     private static TaskExecutor taskHandler = new TaskExecutor();
 
     private TaskExecutor(){}
@@ -45,7 +48,19 @@ public class TaskExecutor {
         byte[] copy = new byte[origin.length-lengthInfo];       //截取字段后的长度
         //截取除长度字段外的xml报文
         System.arraycopy(origin, lengthInfo, copy, 0, origin.length - lengthInfo);
-        Document reqDoc =  DocumentHelper.parseText(new String(copy,charset));
+        Document reqDoc = null;
+        try{
+            reqDoc =  DocumentHelper.parseText(new String(copy,charset));
+        }catch (Exception e){
+            //电子账户报文处理
+            byte[] copy1 = new byte[origin.length-lengthInfo1];       //截取字段后的长度
+            //截取除长度字段外的xml报文
+            System.arraycopy(origin, lengthInfo1, copy, 0, origin.length - lengthInfo1);
+            reqDoc =  DocumentHelper.parseText(new String(copy,charset1));
+            byte[] copy2 = new byte[lengthInfo1];       //截取字段后的长度
+
+        }
+
         Document resDoc =  DocumentHelper.createDocument();
         String serviceCode = null;
         try {
@@ -65,7 +80,6 @@ public class TaskExecutor {
             log.error("未找到请求服务编码"+serviceCode+"对应的服务！");
             response.put("ReturnCode","");
             response.put("ReturnMsg","未找到请求服务编码"+serviceCode+"对应的服务！");
-            addResponse(resDoc,pack,response,baos);
             return;
         }
         //将请求报文按xml标签转换后赋值给request对象
