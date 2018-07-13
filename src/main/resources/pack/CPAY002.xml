@@ -2,7 +2,7 @@
 <!-- MQ服务方测试 -->	
 <Pack>	
 	<PackCode>CPAY002</PackCode>
-	<Desc>快速放款，生成合同号</Desc>
+	<Desc>单步放款</Desc>
 	<LogFlag>true</LogFlag>
 	<Encoding>utf-8</Encoding>
 	<Handler>HandlerCPAY002</Handler>

@@ -14,7 +14,7 @@ import java.net.Socket;
 public class Application {
     private static final Logger log = Logger.getLogger(Application.class);
 
-    private static final int port = 8888;
+    private static final int port = 60000;
     private static final String path = "/pack";         //配置文件存放路径
 
     public static void main(String[] args) {

@@ -1,6 +1,7 @@
 package com.hu.tran.xserver.handle;
 
 import java.util.Map;
+import java.util.Random;
 
 /**
  * @author hutiantian
@@ -10,16 +11,22 @@ import java.util.Map;
 public class HandlerCPAY001 implements Handler{
 
     public void handler(Map<String,Object> request, Map<String,Object> response){
-        response.put("Mac","0000000000001");
-        response.put("TargetSysId","300050");
-        response.put("MsgId","2bc7f1cc-3757-4381-b9c8-5ba787de39aa");
+        if(request.get("ServiceScene").equals("02")){
+            response.put("CtrNo","JK"+getRandString(12));
+        }else {
+            response.put("DbtNo","JJ"+getRandString(12));
+        }
         response.put("ReturnCode","00000000000000");
-        response.put("ReturnMsg","交易成功");
-        response.put("TranDate","20180508");
-        response.put("TranTime","20180508");
-        response.put("GlobalSeqNo","3000501506240286ad09080063e7");
+        response.put("BackendSeqNo","TT"+getRandString(16));
 
+    }
 
-        response.put("CtrNo","123456");
+    private String getRandString(int len){
+        Random r = new Random();
+        StringBuilder sb = new StringBuilder();
+        for(int i=0;i<len;i++){
+            sb.append(r.nextInt(10));
+        }
+        return sb.toString();
     }
 }

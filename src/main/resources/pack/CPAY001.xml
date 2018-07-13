@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- MQ服务方测试 -->	
 <Pack>	
-	<PackCode>CPAY001</PackCode>
-	<Desc>快速放款，生成合同号</Desc>
+	<PackCode>02001000001</PackCode>
+	<Desc>快速放款和单步放款用一个接口</Desc>
 	<LogFlag>true</LogFlag>
 	<Encoding>utf-8</Encoding>
 	<Handler>HandlerCPAY001</Handler>
 	
 	<!-- 收到的请求报文格式 -->	
 	<Request>
-		<Field name="ip" desc="测试" len="8" nullable="true" loop=""  tag="service/BODY/IdntTp"/>
+		<Field name="ServiceScene" desc="测试" len="8" nullable="false" loop=""  tag="service/SYS_HEAD/ServiceScene"/>
 	</Request>  
 	
 	<!-- 处理请求后的响应 -->
@@ -22,8 +22,10 @@
 		<Field name="ReturnMsg" desc="返回码" len="4" nullable="true" loop=""  tag="service/APP_HEAD/ReturnMsg"/>
 		<Field name="TranDate" desc="返回码" len="4" nullable="true" loop=""  tag="service/APP_HEAD/TranDate"/>
 		<Field name="TranTime" desc="返回码" len="4" nullable="true" loop=""  tag="service/APP_HEAD/TranTime"/>
-		<Field name="GlobalSeqNo" desc="返回码" len="4" nullable="true" loop=""  tag="service/APP_HEAD/GlobalSeqNo"/>
+		<Field name="BackendSeqNo" desc="返回码" len="4" nullable="true" loop=""  tag="service/APP_HEAD/BackendSeqNo"/>
 		<!--私有域-->
 		<Field name="CtrNo" desc="返回码" len="4" nullable="true" loop=""  tag="service/BODY/CtrNo"/>
+		<Field name="DbtNo" desc="返回码" len="4" nullable="true" loop=""  tag="service/BODY/DbtNo"/>
+
 	</Response>
 </Pack>
