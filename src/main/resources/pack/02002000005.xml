@@ -6,6 +6,7 @@
 	<LogFlag>true</LogFlag>
 	<Encoding>utf-8</Encoding>
 	<Handler>Handler02002000005</Handler>
+	<Root>service</Root>
 	
 	<!-- 收到的请求报文格式 -->	
 	<Request>

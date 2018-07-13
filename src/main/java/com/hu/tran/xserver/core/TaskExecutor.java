@@ -49,24 +49,23 @@ public class TaskExecutor {
         //截取除长度字段外的xml报文
         System.arraycopy(origin, lengthInfo, copy, 0, origin.length - lengthInfo);
         Document reqDoc = null;
+        byte[] copy2 = new byte[10];       //截取前言，用于匹配serviceId
         try{
             reqDoc =  DocumentHelper.parseText(new String(copy,charset));
         }catch (Exception e){
             //电子账户报文处理
             byte[] copy1 = new byte[origin.length-lengthInfo1];       //截取字段后的长度
             //截取除长度字段外的xml报文
-            System.arraycopy(origin, lengthInfo1, copy, 0, origin.length - lengthInfo1);
-            reqDoc =  DocumentHelper.parseText(new String(copy,charset1));
-            byte[] copy2 = new byte[lengthInfo1];       //截取字段后的长度
-
+            System.arraycopy(origin, lengthInfo1, copy1, 0, origin.length - lengthInfo1);
+            reqDoc =  DocumentHelper.parseText(new String(copy1,charset1));
+            System.arraycopy(origin, 21, copy2, 0, 10);
         }
-
         Document resDoc =  DocumentHelper.createDocument();
         String serviceCode = null;
         try {
             serviceCode = reqDoc.getRootElement().element("SYS_HEAD").element("ServiceCode").getText();
         }catch (Exception e){
-            log.info("请求报文不符合规定！",e);
+            serviceCode = new String(copy2,charset1).toString();
         }
         if(serviceCode==null){
             //可以返回一个表示错误的报文
@@ -212,7 +211,7 @@ public class TaskExecutor {
      */
     @SuppressWarnings("unchecked")
     private void addResponse(Document doc,Pack pack,Map<String,Object> response,ByteArrayOutputStream baos) throws Exception{
-        Element root = doc.addElement("service");              //添加根节点
+        Element root = doc.addElement(pack.getRoot());              //添加根节点
         //遍历响应字段，
         for(int i=0;i<pack.getResponseList().size();i++){
             Element tempRoot = root;

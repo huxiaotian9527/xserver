@@ -135,6 +135,11 @@ public class PackMapper {
             log.error("未配置Handler字段！");
             return null;
         }
+        Element root1 = root.element("Root");
+        if(className==null){
+            log.error("未配置Root字段！");
+            return null;
+        }
         String clazz = handlerPath+className.getText();
         Handler handler = null;
         try{
@@ -151,6 +156,7 @@ public class PackMapper {
         pack.setHandler(handler);
         pack.setRequestList(requestList);
         pack.setResponseList(responseList);
+        pack.setRoot(root1.getText());
         return pack;
     }
 
