@@ -65,7 +65,7 @@ public class TaskExecutor {
         try {
             serviceCode = reqDoc.getRootElement().element("SYS_HEAD").element("ServiceCode").getText();
         }catch (Exception e){
-            serviceCode = new String(copy2,charset1).toString();
+            serviceCode = new String(copy2,charset1);
         }
         if(serviceCode==null){
             //可以返回一个表示错误的报文

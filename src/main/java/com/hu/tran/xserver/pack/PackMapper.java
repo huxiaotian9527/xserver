@@ -136,7 +136,7 @@ public class PackMapper {
             return null;
         }
         Element root1 = root.element("Root");
-        if(className==null){
+        if(root1==null){
             log.error("未配置Root字段！");
             return null;
         }
