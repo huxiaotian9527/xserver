@@ -24,10 +24,10 @@ public class Application {
                 log.error("初始化失败！");
                 System.exit(0);
             }
+            TaskThreadPool pool = new TaskThreadPool();
             while (true) {
                 Socket socket = server.accept();
                 Task task = new Task(socket);
-                TaskThreadPool pool = new TaskThreadPool();
                 pool.execute(task);
             }
         }catch (Exception e){
