@@ -5,5 +5,4 @@
 
 ### 与xcomm不同：
 
-#### xcomm是消费方组件，xserver是服务方组件；xcomm主动发起请求，xserver监听socket端口，接收消息，处理、响应请求，
-同时xserver通过采用线程池来提高响应速度。
+#### xcomm是消费方组件，xserver是服务方组件；xcomm主动发起请求，xserver监听socket端口，接收消息，处理、响应请求，同时xserver通过采用线程池来提高响应速度。
